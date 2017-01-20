@@ -1,0 +1,5 @@
+awslimitchecker==0.7.0
+marshmallow==2.11.1
+requests==2.12.5
+schedule==0.4.2
+webargs==1.5.2
