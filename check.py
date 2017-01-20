@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import time
 
 import schedule
@@ -20,6 +19,7 @@ class Config(ma.Schema):
     slack_url = fields.Str(load_from='SLACK_URL', required=True)
     slack_channel = fields.Str(load_from='SLACK_CHANNEL', required=True)
     slack_icon = fields.Str(load_from='SLACK_ICON', required=True)
+    schedule_interval = fields.Int(load_from='SCHEDULE_INTERVAL', missing=60 * 24)
 
 def check(config):
     checker = AwsLimitChecker(region=config['region'])
@@ -68,9 +68,10 @@ def process_result(result):
                 )
     return warnings, errors
 
+
 if __name__ == "__main__":
     config = Config(strict=True).load(os.environ).data
-    schedule.every().day.do(check, config)
+    schedule.every(config['schedule_interval']).minutes.do(check, config)
     while True:
         schedule.run_pending()
         time.sleep(1)
