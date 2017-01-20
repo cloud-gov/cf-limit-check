@@ -18,6 +18,7 @@ jobs:
         SLACK_URL: {{slack-webhook-url}}
         SLACK_CHANNEL: {{slack-channel}}
         SLACK_ICON: {{slack-alert-icon-url}}
+        SCHEDULE_INTERVAL: {{schedule-interval}}
   on_failure:
     put: slack
     params:
