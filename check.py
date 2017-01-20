@@ -30,44 +30,49 @@ def check(config):
         w, e = process_result(result)
         warnings.extend(w)
         errors.extend(e)
-    parts = []
-    if warnings:
-        parts.append('Warnings:\n{}'.format('\n'.join(warnings)))
-    if errors:
-        parts.append('Errors:\n{}'.format('\n'.join(errors)))
-    if parts:
+
+    attachments = errors + warnings
+    if attachments:
         requests.post(
             config['slack_url'],
             json={
                 'username': config['slack_username'],
                 'channel': config['slack_channel'],
                 'icon_url': config['slack_icon'],
-                'text': '\n\n'.join(parts),
+                'text': 'AWS Quota report:',
+                'attachments': attachments
             },
         ).raise_for_status()
+
+def make_attachment(color, service, limit_name, usage, limit):
+    return {
+        "color": color,
+        "title": "{service}: {limit_name}".format(service=service, limit_name=limit_name),
+        "fields": [
+            {
+                "title": "Current Usage:",
+                "value": usage,
+                "short": True
+            },
+            {
+                "title": "Quota Limit:",
+                "value": limit,
+                "short": True
+            }
+
+        ]
+    }
 
 def process_result(result):
     warnings, errors = [], []
     for service, svc_limits in result.items():
         for limit_name, limit in svc_limits.items():
             for warn in limit.get_warnings():
-                warnings.append("{service} '{limit_name}' usage ({u}) exceeds "
-                    "warning threshold (limit={l})".format(
-                        service=service,
-                        limit_name=limit_name,
-                        u=str(warn),
-                        l=limit.get_limit(),
-                    )
-                )
+                warnings.append(make_attachment('warning', service, limit_name, str(warn), str(limit.get_limit())))
+
             for crit in limit.get_criticals():
-                errors.append("{service} '{limit_name}' usage ({u}) exceeds "
-                    "critical threshold (limit={l})".format(
-                        service=service,
-                        limit_name=limit_name,
-                        u=str(crit),
-                        l=limit.get_limit(),
-                    )
-                )
+                errors.append(make_attachment('danger', service, limit_name, str(crit), str(limit.get_limit())))
+
     return warnings, errors
 
 
