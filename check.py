@@ -17,6 +17,7 @@ class Config(ma.Schema):
     services = fields.DelimitedList(fields.Str, load_from='SERVICES', required=True)
     use_ta = fields.Bool(load_from='USE_TA', missing=True)
     slack_url = fields.Str(load_from='SLACK_URL', required=True)
+    slack_username = fields.Str(load_from='SLACK_USERNAME', missing='limit-check')
     slack_channel = fields.Str(load_from='SLACK_CHANNEL', required=True)
     slack_icon = fields.Str(load_from='SLACK_ICON', required=True)
     schedule_interval = fields.Int(load_from='SCHEDULE_INTERVAL', missing=60 * 24)
@@ -38,6 +39,7 @@ def check(config):
         requests.post(
             config['slack_url'],
             json={
+                'username': config['slack_username'],
                 'channel': config['slack_channel'],
                 'icon_url': config['slack_icon'],
                 'text': '\n\n'.join(parts),
