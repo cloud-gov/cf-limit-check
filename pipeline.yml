@@ -1,6 +1,7 @@
 ---
 jobs:
 - name: push-limit-checker
+  serial: true
   plan:
   - get: limit-check-src
     trigger: true
@@ -16,6 +17,7 @@ jobs:
         SERVICES: {{services}}
         USE_TA: {{use-ta}}
         SLACK_URL: {{slack-webhook-url}}
+        SLACK_USERNAME: {{slack-alert-username}}
         SLACK_CHANNEL: {{slack-channel}}
         SLACK_ICON: {{slack-alert-icon-url}}
         SCHEDULE_INTERVAL: {{schedule-interval}}
@@ -23,7 +25,7 @@ jobs:
     put: slack
     params:
       text: |
-        :x: FAILED to deploy cf-limit-check on production
+        :x: FAILED to deploy cf-limit-check on {{cf-api-url}}
         <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
       channel: {{slack-channel}}
       username: {{slack-username}}
@@ -32,7 +34,7 @@ jobs:
     put: slack
     params:
       text: |
-        :white_check_mark: Successfully deployed cf-limit-check on production
+        :white_check_mark: Successfully deployed cf-limit-check on {{cf-api-url}}
         <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
       channel: {{slack-channel}}
       username: {{slack-username}}
