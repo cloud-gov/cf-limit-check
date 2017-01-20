@@ -19,6 +19,7 @@ class Config(ma.Schema):
     use_ta = fields.Bool(load_from='USE_TA', missing=True)
     slack_url = fields.Str(load_from='SLACK_URL', required=True)
     slack_channel = fields.Str(load_from='SLACK_CHANNEL', required=True)
+    slack_icon = fields.Str(load_from='SLACK_ICON', required=True)
 
 def check(config):
     checker = AwsLimitChecker(region=config['region'])
@@ -28,16 +29,18 @@ def check(config):
         w, e = process_result(result)
         warnings.extend(w)
         errors.extend(e)
-    if warnings or errors:
-        message = 'Warnings:\n{warnings}\n\nErrors:\n{errors}'.format(
-            warnings='\n'.join(warnings),
-            errors='\n'.join(errors),
-        )
+    parts = []
+    if warnings:
+        parts.append('Warnings:\n{}'.format('\n'.join(warnings)))
+    if errors:
+        parts.append('Errors:\n{}'.format('\n'.join(errors)))
+    if parts:
         requests.post(
             config['slack_url'],
             json={
                 'channel': config['slack_channel'],
-                'text': message,
+                'icon_url': config['slack_icon'],
+                'text': '\n\n'.join(parts),
             },
         ).raise_for_status()
 
@@ -67,7 +70,7 @@ def process_result(result):
 
 if __name__ == "__main__":
     config = Config(strict=True).load(os.environ).data
-    schedule.every().minute.do(check, config)
+    schedule.every().day.do(check, config)
     while True:
         schedule.run_pending()
         time.sleep(1)

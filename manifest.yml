@@ -1,5 +1,5 @@
 applications:
-- name: aws-limit-check
+- name: cf-limit-check
   buildpack: python_buildpack
   command: ./check.py
   health-check-type: none

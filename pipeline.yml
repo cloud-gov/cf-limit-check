@@ -2,13 +2,13 @@
 jobs:
 - name: push-limit-checker
   plan:
-  - get: limit-checker-src
+  - get: limit-check-src
     trigger: true
   - put: deploy-limit-check
     params:
-      manifest: limit-checker-src/manifest.yml
-      path: limit-checker-src
-      current_app_name: limit-checker
+      manifest: limit-check-src/manifest.yml
+      path: limit-check-src
+      current_app_name: cf-limit-check
       environment_variables:
         AWS_DEFAULT_REGION: {{aws-default-region}}
         AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
@@ -17,6 +17,7 @@ jobs:
         USE_TA: {{use-ta}}
         SLACK_URL: {{slack-webhook-url}}
         SLACK_CHANNEL: {{slack-channel}}
+        SLACK_ICON: {{slack-alert-icon-url}}
   on_failure:
     put: slack
     params:
