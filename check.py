@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 import time
 
 import schedule
@@ -21,9 +22,16 @@ class Config(ma.Schema):
     slack_channel = fields.Str(load_from='SLACK_CHANNEL', required=True)
     slack_icon = fields.Str(load_from='SLACK_ICON', required=True)
     schedule_interval = fields.Int(load_from='SCHEDULE_INTERVAL', missing=60 * 24)
+    limit_overrides = fields.Str(load_from='LIMIT_OVERRIDES')
+
+    @ma.post_load
+    def load_overrides(self, item):
+        item['limit_overrides'] = json.loads(item['limit_overrides'] or '{}')
+        return item
 
 def check(config):
     checker = AwsLimitChecker(region=config['region'])
+    checker.set_limit_overrides(config['limit_overrides'])
     warnings, errors = [], []
     for service in config['services']:
         result = checker.check_thresholds(service=service, use_ta=config['use_ta'])
@@ -52,15 +60,14 @@ def make_attachment(color, service, limit_name, usage, limit):
             {
                 "title": "Current Usage:",
                 "value": usage,
-                "short": True
+                "short": True,
             },
             {
                 "title": "Quota Limit:",
                 "value": limit,
-                "short": True
-            }
-
-        ]
+                "short": True,
+            },
+        ],
     }
 
 def process_result(result):

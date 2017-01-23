@@ -21,6 +21,7 @@ jobs:
         SLACK_CHANNEL: {{slack-channel}}
         SLACK_ICON: {{slack-alert-icon-url}}
         SCHEDULE_INTERVAL: {{schedule-interval}}
+        LIMIT_OVERRIDES: {{limit-overrides}}
   on_failure:
     put: slack
     params:
