@@ -1,61 +1,45 @@
 ---
 jobs:
-- name: push-limit-checker
-  serial: true
+- name: run-limit-checker
   plan:
-  - get: limit-check-src
-    trigger: true
-  - put: deploy-limit-check
+  - aggregate:
+    - get: schedule
+      trigger: true
+    - get: limit-check-src
+  - task: run-limit-checker
+    file: limit-check-src/check.yml
     params:
-      manifest: limit-check-src/manifest.yml
-      path: limit-check-src
-      current_app_name: cf-limit-check
-      environment_variables:
-        AWS_DEFAULT_REGION: {{aws-default-region}}
-        AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
-        AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
-        SERVICES: {{services}}
-        USE_TA: {{use-ta}}
-        SLACK_URL: {{slack-webhook-url}}
-        SLACK_USERNAME: {{slack-alert-username}}
-        SLACK_CHANNEL: {{slack-channel}}
-        SLACK_ICON: {{slack-alert-icon-url}}
-        SCHEDULE_INTERVAL: {{schedule-interval}}
-        LIMIT_OVERRIDES: {{limit-overrides}}
+      AWS_DEFAULT_REGION: {{aws-default-region}}
+      AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
+      SERVICES: {{services}}
+      USE_TA: {{use-ta}}
+      SLACK_URL: {{slack-webhook-url}}
+      SLACK_USERNAME: {{slack-alert-username}}
+      SLACK_CHANNEL: {{slack-channel}}
+      SLACK_ICON: {{slack-alert-icon-url}}
+      LIMIT_OVERRIDES: {{limit-overrides}}
   on_failure:
     put: slack
     params:
       text: |
-        :x: FAILED to deploy cf-limit-check on {{cf-api-url}}
-        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
-      channel: {{slack-channel}}
-      username: {{slack-username}}
-      icon_url: {{slack-icon-url}}
-  on_success:
-    put: slack
-    params:
-      text: |
-        :white_check_mark: Successfully deployed cf-limit-check on {{cf-api-url}}
+        :x: FAILED to run cf-limit-check
         <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
       channel: {{slack-channel}}
       username: {{slack-username}}
       icon_url: {{slack-icon-url}}
 
 resources:
+- name: schedule
+  type: time
+  source:
+    interval: {{schedule-interval}}
+
 - name: limit-check-src
   type: git
   source:
     uri: {{limit-check-git-url}}
     branch: {{limit-check-git-branch}}
-
-- name: deploy-limit-check
-  type: cf
-  source:
-    api: {{cf-api-url}}
-    username: {{cf-deploy-username}}
-    password: {{cf-deploy-password}}
-    organization: {{cf-organization}}
-    space: {{cf-space}}
 
 - name: slack
   type: slack-notification
