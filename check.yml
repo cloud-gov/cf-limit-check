@@ -1,0 +1,14 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: python
+    tag: "3.6"
+
+inputs:
+- name: limit-check-src
+
+run:
+  path: limit-check-src/check.sh

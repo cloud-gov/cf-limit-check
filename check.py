@@ -3,9 +3,7 @@
 
 import os
 import json
-import time
 
-import schedule
 import marshmallow as ma
 from webargs import fields
 from awslimitchecker.checker import AwsLimitChecker
@@ -21,7 +19,6 @@ class Config(ma.Schema):
     slack_username = fields.Str(load_from='SLACK_USERNAME', missing='limit-check')
     slack_channel = fields.Str(load_from='SLACK_CHANNEL', required=True)
     slack_icon = fields.Str(load_from='SLACK_ICON', required=True)
-    schedule_interval = fields.Int(load_from='SCHEDULE_INTERVAL', missing=60 * 24)
     limit_overrides = fields.Str(load_from='LIMIT_OVERRIDES')
 
     @ma.post_load
@@ -48,7 +45,7 @@ def check(config):
                 'channel': config['slack_channel'],
                 'icon_url': config['slack_icon'],
                 'text': 'AWS Quota report:',
-                'attachments': attachments
+                'attachments': attachments,
             },
         ).raise_for_status()
 
@@ -85,7 +82,4 @@ def process_result(result):
 
 if __name__ == "__main__":
     config = Config(strict=True).load(os.environ).data
-    schedule.every(config['schedule_interval']).minutes.do(check, config)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    check(config)
