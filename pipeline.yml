@@ -1,18 +1,18 @@
 ---
 jobs:
-- name: run-limit-checker
+- name: run-limit-checker-govcloud
   plan:
   - aggregate:
     - get: schedule
       trigger: true
     - get: limit-check-src
-  - task: run-limit-checker
+  - task: run-limit-checker-govcloud
     file: limit-check-src/check.yml
     params:
-      AWS_DEFAULT_REGION: {{aws-default-region}}
-      AWS_ACCESS_KEY_ID: {{aws-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{aws-secret-access-key}}
-      SERVICES: {{services}}
+      AWS_DEFAULT_REGION: {{govcloud-aws-default-region}}
+      AWS_ACCESS_KEY_ID: {{govcloud-aws-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{govcloud-aws-secret-access-key}}
+      SERVICES: {{govcloud-services}}
       USE_TA: {{use-ta}}
       SLACK_URL: {{slack-webhook-url}}
       SLACK_USERNAME: {{slack-alert-username}}
@@ -23,7 +23,36 @@ jobs:
     put: slack
     params:
       text: |
-        :x: FAILED to run cf-limit-check
+        :x: FAILED to run cf-limit-check on {{govcloud-aws-default-region}}
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
+      channel: {{slack-channel}}
+      username: {{slack-username}}
+      icon_url: {{slack-icon-url}}
+
+- name: run-limit-checker-east
+  plan:
+  - aggregate:
+    - get: schedule
+      trigger: true
+    - get: limit-check-src
+  - task: run-limit-checker-east
+    file: limit-check-src/check.yml
+    params:
+      AWS_DEFAULT_REGION: {{east-aws-default-region}}
+      AWS_ACCESS_KEY_ID: {{east-aws-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{east-aws-secret-access-key}}
+      SERVICES: {{east-services}}
+      USE_TA: {{use-ta}}
+      SLACK_URL: {{slack-webhook-url}}
+      SLACK_USERNAME: {{slack-alert-username}}
+      SLACK_CHANNEL: {{slack-channel}}
+      SLACK_ICON: {{slack-alert-icon-url}}
+      LIMIT_OVERRIDES: {{limit-overrides}}
+  on_failure:
+    put: slack
+    params:
+      text: |
+        :x: FAILED to run cf-limit-check on {{east-aws-default-region}}
         <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
       channel: {{slack-channel}}
       username: {{slack-username}}
