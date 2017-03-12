@@ -4,10 +4,11 @@
 import os
 import json
 
+import requests
 import marshmallow as ma
 from webargs import fields
+from awslimitchecker.services import _Ec2Service
 from awslimitchecker.checker import AwsLimitChecker
-import requests
 
 class Config(ma.Schema):
     region = fields.Str(load_from='AWS_DEFAULT_REGION', required=True)
@@ -23,18 +24,23 @@ class Config(ma.Schema):
 
     @ma.post_load
     def load_overrides(self, item):
-        item['limit_overrides'] = json.loads(item['limit_overrides'] or '{}')
+        overrides = json.loads(item['limit_overrides'] or '{}')
+        ec2 = _Ec2Service(0, 1)
+        overrides.setdefault('EC2', {})
+        for instance_type in ec2._instance_types():
+            key = 'Running On-Demand {} instances'.format(instance_type)
+            overrides['EC2'].setdefault(key, -1)
+        item['limit_overrides'] = overrides
         return item
 
 def check(config):
     checker = AwsLimitChecker(region=config['region'])
     checker.set_limit_overrides(config['limit_overrides'])
     warnings, errors = [], []
-    for service in config['services']:
-        result = checker.check_thresholds(service=service, use_ta=config['use_ta'])
-        w, e = process_result(result)
-        warnings.extend(w)
-        errors.extend(e)
+    result = checker.check_thresholds(service=config['services'], use_ta=config['use_ta'])
+    w, e = process_result(result)
+    warnings.extend(w)
+    errors.extend(e)
 
     attachments = errors + warnings
     if attachments:
@@ -73,10 +79,8 @@ def process_result(result):
         for limit_name, limit in svc_limits.items():
             for warn in limit.get_warnings():
                 warnings.append(make_attachment('warning', service, limit_name, str(warn), str(limit.get_limit())))
-
             for crit in limit.get_criticals():
                 errors.append(make_attachment('danger', service, limit_name, str(crit), str(limit.get_limit())))
-
     return warnings, errors
 
 
