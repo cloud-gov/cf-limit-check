@@ -7,11 +7,11 @@ jobs:
       trigger: true
     - get: limit-check-src
   - task: run-limit-checker-govcloud
+    tags:
+    - iaas
     file: limit-check-src/check.yml
     params:
       AWS_DEFAULT_REGION: {{govcloud-aws-default-region}}
-      AWS_ACCESS_KEY_ID: {{govcloud-aws-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{govcloud-aws-secret-access-key}}
       SERVICES: {{govcloud-services}}
       USE_TA: {{use-ta}}
       SLACK_URL: {{slack-webhook-url}}

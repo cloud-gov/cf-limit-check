@@ -12,8 +12,8 @@ from awslimitchecker.checker import AwsLimitChecker
 
 class Config(ma.Schema):
     region = fields.Str(load_from='AWS_DEFAULT_REGION', required=True)
-    access_key_id = fields.Str(load_from='AWS_ACCESS_KEY_ID', required=True)
-    secret_access_key = fields.Str(load_from='AWS_SECRET_ACCESS_KEY', required=True)
+    access_key_id = fields.Str(load_from='AWS_ACCESS_KEY_ID', required=False)
+    secret_access_key = fields.Str(load_from='AWS_SECRET_ACCESS_KEY', required=False)
     services = fields.DelimitedList(fields.Str, load_from='SERVICES', required=True)
     use_ta = fields.Bool(load_from='USE_TA', missing=True)
     slack_url = fields.Str(load_from='SLACK_URL', required=True)
