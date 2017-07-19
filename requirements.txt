@@ -1,4 +1,4 @@
-awslimitchecker==0.8.0
+awslimitchecker==0.10.0
 marshmallow==2.11.1
 requests==2.12.5
 webargs==1.5.2
