@@ -1,7 +1,0 @@
-applications:
-- name: cf-limit-check
-  buildpack: python_buildpack
-  command: ./check.py
-  health-check-type: none
-  no-route: true
-  memory: 256M
