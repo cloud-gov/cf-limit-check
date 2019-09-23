@@ -2,7 +2,7 @@
 jobs:
 - name: run-limit-checker-govcloud
   plan:
-  - aggregate:
+  - in_parallel:
     - get: schedule
       trigger: true
     - get: limit-check-src
@@ -11,69 +11,69 @@ jobs:
     - iaas
     file: limit-check-src/check.yml
     params:
-      AWS_DEFAULT_REGION: {{govcloud-aws-default-region}}
-      SERVICES: {{govcloud-services}}
-      USE_TA: {{use-ta}}
-      SLACK_URL: {{slack-webhook-url}}
-      SLACK_USERNAME: {{slack-alert-username}}
-      SLACK_CHANNEL: {{slack-channel}}
-      SLACK_ICON: {{slack-alert-icon-url}}
-      LIMIT_OVERRIDES: {{limit-overrides}}
+      AWS_DEFAULT_REGION: ((govcloud-aws-default-region))
+      SERVICES: ((govcloud-services))
+      USE_TA: ((use-ta))
+      SLACK_URL: ((slack-webhook-url))
+      SLACK_USERNAME: ((slack-alert-username))
+      SLACK_CHANNEL: ((slack-channel))
+      SLACK_ICON: ((slack-alert-icon-url))
+      LIMIT_OVERRIDES: ((limit-overrides))
   on_failure:
     put: slack
     params:
       text: |
-        :x: FAILED to run cf-limit-check on {{govcloud-aws-default-region}}
+        :x: FAILED to run cf-limit-check on ((govcloud-aws-default-region))
         <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
-      channel: {{slack-channel}}
-      username: {{slack-username}}
-      icon_url: {{slack-icon-url}}
+      channel: ((slack-channel))
+      username: ((slack-username))
+      icon_url: ((slack-icon-url))
 
 - name: run-limit-checker-east
   plan:
-  - aggregate:
+  - in_parallel:
     - get: schedule
       trigger: true
     - get: limit-check-src
   - task: run-limit-checker-east
     file: limit-check-src/check.yml
     params:
-      AWS_DEFAULT_REGION: {{east-aws-default-region}}
-      AWS_ACCESS_KEY_ID: {{east-aws-access-key-id}}
-      AWS_SECRET_ACCESS_KEY: {{east-aws-secret-access-key}}
-      SERVICES: {{east-services}}
-      USE_TA: {{use-ta}}
-      SLACK_URL: {{slack-webhook-url}}
-      SLACK_USERNAME: {{slack-alert-username}}
-      SLACK_CHANNEL: {{slack-channel}}
-      SLACK_ICON: {{slack-alert-icon-url}}
-      LIMIT_OVERRIDES: {{limit-overrides}}
+      AWS_DEFAULT_REGION: ((east-aws-default-region))
+      AWS_ACCESS_KEY_ID: ((east-aws-access-key-id))
+      AWS_SECRET_ACCESS_KEY: ((east-aws-secret-access-key))
+      SERVICES: ((east-services))
+      USE_TA: ((use-ta))
+      SLACK_URL: ((slack-webhook-url))
+      SLACK_USERNAME: ((slack-alert-username))
+      SLACK_CHANNEL: ((slack-channel))
+      SLACK_ICON: ((slack-alert-icon-url))
+      LIMIT_OVERRIDES: ((limit-overrides))
   on_failure:
     put: slack
     params:
       text: |
-        :x: FAILED to run cf-limit-check on {{east-aws-default-region}}
+        :x: FAILED to run cf-limit-check on ((east-aws-default-region))
         <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
-      channel: {{slack-channel}}
-      username: {{slack-username}}
-      icon_url: {{slack-icon-url}}
+      channel: ((slack-channel))
+      username: ((slack-username))
+      icon_url: ((slack-icon-url))
 
 resources:
 - name: schedule
   type: time
   source:
-    interval: {{schedule-interval}}
+    interval: ((schedule-interval))
 
 - name: limit-check-src
   type: git
   source:
-    uri: {{limit-check-git-url}}
-    branch: {{limit-check-git-branch}}
+    uri: ((limit-check-git-url))
+    branch: ((limit-check-git-branch))
 
 - name: slack
   type: slack-notification
   source:
-    url: {{slack-webhook-url}}
+    url: ((slack-webhook-url))
 
 resource_types:
 - name: slack-notification
