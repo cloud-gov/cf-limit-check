@@ -3,6 +3,7 @@
 
 import os
 import json
+import sys
 
 import requests
 import marshmallow as ma
@@ -44,16 +45,23 @@ def check(config):
 
     attachments = errors + warnings
     if attachments:
-        requests.post(
-            config['slack_url'],
-            json={
-                'username': config['slack_username'],
-                'channel': config['slack_channel'],
-                'icon_url': config['slack_icon'],
-                'text': 'AWS Quota report:',
-                'attachments': attachments,
-            },
-        ).raise_for_status()
+        try:
+            requests.post(
+                config['slack_url'],
+                json={
+                    'username': config['slack_username'],
+                    'channel': config['slack_channel'],
+                    'icon_url': config['slack_icon'],
+                    'text': 'AWS Quota report:',
+                    'attachments': attachments,
+                },
+            ).raise_for_status()
+        except Exception as e:
+            print(e)
+        for attachment in attachments:
+            print(f'{attachment["title"]} - Current: {attachment["fields"][0]["value"]} Quota: {attachment["fields"][1]["value"]}')
+    sys.exit(len(attachments))
+
 
 def make_attachment(color, service, limit_name, usage, limit):
     return {
