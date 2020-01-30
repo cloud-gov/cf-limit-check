@@ -1,5 +1,4 @@
 awslimitchecker==8.0.1
-marshmallow~=2.15.1
-requests==2.20
-urllib3==1.24.2
+marshmallow==2.15.2
+requests==2.22
 webargs==5.1.3

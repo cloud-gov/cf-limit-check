@@ -24,21 +24,10 @@ class Config(ma.Schema):
     slack_icon = fields.Str(load_from='SLACK_ICON', required=True)
     limit_overrides = fields.Str(load_from='LIMIT_OVERRIDES')
 
-    # @ma.post_load
-    # def load_overrides(self, item):
-    #     overrides = json.loads(item['limit_overrides'] or '{}')
-    #     ec2 = _Ec2Service(0, 1, {}, None)
-    #     overrides.setdefault('EC2', {})
-    #     for instance_type in ec2._instance_types():
-    #         key = 'Running On-Demand {} instances'.format(instance_type)
-    #         overrides['EC2'].setdefault(key, -1)
-    #     item['limit_overrides'] = overrides
-    #     return item
-
 
 def check(config):
     region = config["region"]
-    if "gov" in region:
+    if "gov" in region:  # servicequota is not yet available in govcloud.
         checker = AwsLimitChecker(region=config["region"], skip_quotas=True)
     else:
         checker = AwsLimitChecker(region=config["region"])
