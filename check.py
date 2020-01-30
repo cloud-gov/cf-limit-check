@@ -33,6 +33,11 @@ def check(config):
         checker = AwsLimitChecker(region=config["region"])
 
     overrides = json.loads(config["limit_overrides"])
+
+    # commercial doesn't have any services in ec2.
+    if "gov" not in region:
+        del overrides["EC2"]
+
     checker.set_limit_overrides(override_dict=overrides)
 
     warnings, errors = [], []
