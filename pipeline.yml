@@ -6,6 +6,7 @@ jobs:
     - get: schedule
       trigger: true
     - get: limit-check-src
+      trigger: true
   - task: run-limit-checker-govcloud
     tags:
     - iaas
@@ -35,6 +36,7 @@ jobs:
     - get: schedule
       trigger: true
     - get: limit-check-src
+      trigger: true
   - task: run-limit-checker-east
     file: limit-check-src/check.yml
     params:

@@ -8,7 +8,6 @@ import sys
 import requests
 import marshmallow as ma
 from webargs import fields
-from awslimitchecker.services import _Ec2Service
 from awslimitchecker.checker import AwsLimitChecker
 
 
@@ -37,22 +36,12 @@ class Config(ma.Schema):
     #     return item
 
 
-class ConfigLoader(object):
-    def __init__(self):
-        pass
-
-    def _load_slack(self):
-        pass
-
-    def _load_aws(self):
-        pass
-
-    def _load_limit_overrides(self):
-        pass
-
-
 def check(config):
-    checker = AwsLimitChecker(region=config['region'])
+    region = config["region"]
+    if "gov" in region:
+        checker = AwsLimitChecker(region=config["region"], skip_quotas=True)
+    else:
+        checker = AwsLimitChecker(region=config["region"])
 
     overrides = json.loads(config["limit_overrides"])
     checker.set_limit_overrides(override_dict=overrides)
@@ -78,10 +67,10 @@ def check(config):
             ).raise_for_status()
         except Exception as e:
             print(e)
+            sys.exit(e)
         for attachment in attachments:
             print(
                 f'{attachment["title"]} - Current: {attachment["fields"][0]["value"]} Quota: {attachment["fields"][1]["value"]}')
-    sys.exit(len(attachments))
 
 
 def make_attachment(color, service, limit_name, usage, limit):
