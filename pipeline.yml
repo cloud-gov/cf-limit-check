@@ -71,6 +71,7 @@ resources:
   source:
     uri: ((limit-check-git-url))
     branch: ((limit-check-git-branch))
+    commit_verification_keys: ((cloud-gov-pgp-keys))
 
 - name: slack
   type: slack-notification
